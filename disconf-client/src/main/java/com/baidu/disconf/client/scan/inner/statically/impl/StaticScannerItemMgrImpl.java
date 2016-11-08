@@ -18,7 +18,7 @@ import com.baidu.disconf.client.config.DisClientSysConfig;
 import com.baidu.disconf.client.scan.inner.statically.StaticScannerMgr;
 import com.baidu.disconf.client.scan.inner.statically.model.ScanStaticModel;
 import com.baidu.disconf.client.store.DisconfStoreProcessorFactory;
-import com.baidu.disconf.client.utils.MethodUtils;
+import com.baidu.disconf.client.support.utils.MethodUtils;
 import com.baidu.disconf.core.common.constants.DisConfigTypeEnum;
 import com.baidu.disconf.core.common.path.DisconfWebPathMgr;
 
@@ -122,7 +122,8 @@ public class StaticScannerItemMgrImpl extends StaticScannerMgrImplBase implement
 
         //
         // disConfCommonModel
-        DisConfCommonModel disConfCommonModel = makeDisConfCommonModel(disconfItem.env(), disconfItem.version());
+        DisConfCommonModel disConfCommonModel = makeDisConfCommonModel(disconfItem.app(), disconfItem.env(),
+                disconfItem.version());
         disconfCenterItem.setDisConfCommonModel(disConfCommonModel);
 
         // Disconf-web url

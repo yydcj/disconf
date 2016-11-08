@@ -11,7 +11,7 @@ import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,7 +113,7 @@ public class ConfigMgrImpl implements ConfigMgr {
     public List<File> getDisconfFileList(ConfListForm confListForm) {
 
         List<Config> configList =
-                configDao.getConfigList(confListForm.getAppId(), confListForm.getEnvId(), confListForm.getVersion());
+                configDao.getConfigList(confListForm.getAppId(), confListForm.getEnvId(), confListForm.getVersion(),true);
 
         // 时间作为当前文件夹
         String curTime = DateUtils.format(new Date(), DataFormatConstants.COMMON_TIME_FORMAT);
@@ -188,7 +188,7 @@ public class ConfigMgrImpl implements ConfigMgr {
                         ConfListVo configListVo = convert(input, appNameString, envName, zkDisconfData);
 
                         // 列表操作不要显示值, 为了前端显示快速(只是内存里操作)
-                        if (!myFetchZk || !getErrorMessage) {
+                        if (!myFetchZk && !getErrorMessage) {
 
                             // 列表 value 设置为 ""
                             configListVo.setValue("");
@@ -424,7 +424,7 @@ public class ConfigMgrImpl implements ConfigMgr {
         //
         String toEmails = appMgr.getEmails(config.getAppId());
 
-        if (applicationPropertyConfig.isEmailMonitorOn() == true) {
+        if (applicationPropertyConfig.isEmailMonitorOn()) {
             boolean isSendSuccess = logMailBean.sendHtmlEmail(toEmails,
                     " config update", DiffUtils.getDiff(CodeUtils.unicodeToUtf8(oldValue),
                             value,
@@ -461,10 +461,10 @@ public class ConfigMgrImpl implements ConfigMgr {
      */
     private String getNewValue(String newValue, String identify, String htmlClick) {
 
-        String contentString = StringEscapeUtils.escapeHtml(identify) + "<br/>" + htmlClick + "<br/><br/> ";
+        String contentString = StringEscapeUtils.escapeHtml4(identify) + "<br/>" + htmlClick + "<br/><br/> ";
 
         String data = "<br/><br/><br/><span style='color:#FF0000'>New value:</span><br/>";
-        contentString = contentString + data + StringEscapeUtils.escapeHtml(newValue);
+        contentString = contentString + data + StringEscapeUtils.escapeHtml4(newValue);
 
         return contentString;
     }

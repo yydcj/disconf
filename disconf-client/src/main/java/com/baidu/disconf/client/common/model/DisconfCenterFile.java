@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.baidu.disconf.client.common.constants.SupportFileTypeEnum;
 import com.baidu.disconf.client.config.DisClientConfig;
-import com.baidu.disconf.client.utils.ClassUtils;
+import com.baidu.disconf.client.support.utils.ClassUtils;
 import com.baidu.disconf.core.common.utils.ClassLoaderUtil;
 import com.baidu.disconf.core.common.utils.OsUtil;
 
@@ -32,13 +32,17 @@ public class DisconfCenterFile extends DisconfCenterBaseModel {
     // 额外的配置数据，非注解式使用它来存储
     private Map<String, Object> additionalKeyMaps = new HashMap<String, Object>();
 
+    // 是否是非注解注入方式
+    private boolean isTaggedWithNonAnnotationFile = false;
+
     // 配置文件类
     private Class<?> cls;
 
     // 文件名
     private String fileName;
 
-    private String copy2TargetDirPath;
+    // 配置文件 指定路径下
+    private String targetDirPath;
 
     // 文件类型
     private SupportFileTypeEnum supportFileTypeEnum = SupportFileTypeEnum.ANY;
@@ -83,18 +87,26 @@ public class DisconfCenterFile extends DisconfCenterBaseModel {
         this.supportFileTypeEnum = supportFileTypeEnum;
     }
 
-    public String getCopy2TargetDirPath() {
-        return copy2TargetDirPath;
+    public boolean isTaggedWithNonAnnotationFile() {
+        return isTaggedWithNonAnnotationFile;
     }
 
-    public void setCopy2TargetDirPath(String copy2TargetDirPath) {
-        this.copy2TargetDirPath = copy2TargetDirPath;
+    public void setIsTaggedWithNonAnnotationFile(boolean isTaggedWithNonAnnotationFile) {
+        this.isTaggedWithNonAnnotationFile = isTaggedWithNonAnnotationFile;
+    }
+
+    public String getTargetDirPath() {
+        return targetDirPath;
+    }
+
+    public void setTargetDirPath(String targetDirPath) {
+        this.targetDirPath = targetDirPath;
     }
 
     @Override
     public String toString() {
         return "\n\tDisconfCenterFile [\n\tkeyMaps=" + keyMaps + "\n\tcls=" + cls + "\n\tfileName=" + fileName
-                + "\n\tcopy2TargetDirPath=" + copy2TargetDirPath +
+                + "\n\ttargetDirPath=" + targetDirPath +
                 super.toString() + "]";
     }
 
@@ -129,17 +141,19 @@ public class DisconfCenterFile extends DisconfCenterBaseModel {
      * 配置文件的路径
      */
     public String getFilePath() {
+
+        // 不放到classpath, 则文件路径根据 userDefineDownloadDir 来设置
         if (!DisClientConfig.getInstance().enableLocalDownloadDirInClassPath) {
             return OsUtil.pathJoin(DisClientConfig.getInstance().userDefineDownloadDir, fileName);
         }
 
-        if (copy2TargetDirPath != null) {
+        if (targetDirPath != null) {
 
-            if (copy2TargetDirPath.startsWith("/")) {
-                return OsUtil.pathJoin(copy2TargetDirPath, fileName);
+            if (targetDirPath.startsWith("/")) {
+                return OsUtil.pathJoin(targetDirPath, fileName);
             }
 
-            return OsUtil.pathJoin(ClassLoaderUtil.getClassPath(), copy2TargetDirPath, fileName);
+            return OsUtil.pathJoin(ClassLoaderUtil.getClassPath(), targetDirPath, fileName);
         }
 
         return OsUtil.pathJoin(ClassLoaderUtil.getClassPath(), fileName);
@@ -151,13 +165,13 @@ public class DisconfCenterFile extends DisconfCenterBaseModel {
     public String getFileDir() {
 
         // 获取相对于classpath的路径
-        if (copy2TargetDirPath != null) {
+        if (targetDirPath != null) {
 
-            if (copy2TargetDirPath.startsWith("/")) {
-                return OsUtil.pathJoin(copy2TargetDirPath);
+            if (targetDirPath.startsWith("/")) {
+                return OsUtil.pathJoin(targetDirPath);
             }
 
-            return OsUtil.pathJoin(ClassLoaderUtil.getClassPath(), copy2TargetDirPath);
+            return OsUtil.pathJoin(ClassLoaderUtil.getClassPath(), targetDirPath);
         }
 
         return ClassLoaderUtil.getClassPath();
@@ -203,10 +217,15 @@ public class DisconfCenterFile extends DisconfCenterBaseModel {
          */
         public Object setValue4StaticFileItem(Object value) throws Exception {
 
-            if (setMethod != null) {
-                setMethod.invoke(null, value);
-            } else {
-                field.set(null, value);
+            try {
+                if (setMethod != null) {
+                    setMethod.invoke(null, value);
+                } else {
+                    field.set(null, value);
+                }
+
+            } catch (Exception e) {
+                LOGGER.warn(e.toString());
             }
 
             return value;
@@ -214,10 +233,14 @@ public class DisconfCenterFile extends DisconfCenterBaseModel {
 
         public Object setValue4FileItem(Object object, Object value) throws Exception {
 
-            if (setMethod != null) {
-                setMethod.invoke(object, value);
-            } else {
-                field.set(object, value);
+            try {
+                if (setMethod != null) {
+                    setMethod.invoke(object, value);
+                } else {
+                    field.set(object, value);
+                }
+            } catch (Exception e) {
+                LOGGER.warn(e.toString());
             }
 
             return value;

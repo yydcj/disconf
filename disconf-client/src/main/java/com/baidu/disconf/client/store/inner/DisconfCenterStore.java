@@ -70,8 +70,14 @@ public class DisconfCenterStore {
 
         if (confFileMap.containsKey(fileName)) {
 
-            LOGGER.error("There are two same fileName!!!! " + "first: " + confFileMap.get(fileName).toString() +
-                    ", Second: " + disconfCenterFile.toString());
+            LOGGER.warn("There are two same fileName key!!!! " + fileName);
+            DisconfCenterFile existCenterFile = confFileMap.get(fileName);
+
+            // 如果是 同时使用了 注解式 和 非注解式 两种方式，则当修改时也要 进行 XML 式 reload
+            if (disconfCenterFile.isTaggedWithNonAnnotationFile()) {
+                existCenterFile.setIsTaggedWithNonAnnotationFile(true);
+            }
+
         } else {
             confFileMap.put(fileName, disconfCenterFile);
         }
@@ -88,7 +94,7 @@ public class DisconfCenterStore {
 
         if (confItemMap.containsKey(key)) {
 
-            LOGGER.error("There are two same fileName!!!! " + "first: " + confItemMap.get(key).getClass().toString() +
+            LOGGER.error("There are two same item key!!!! " + "first: " + confItemMap.get(key).getClass().toString() +
                     ", Second: " + disconfCenterItem.getClass().toString());
         } else {
             confItemMap.put(key, disconfCenterItem);
